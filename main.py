@@ -212,8 +212,39 @@ weather_codes = {
 }
 
 
+def show_map(lat, lon, city_name):
+    st.subheader("🗺️ Location Map")
 
+    deck = pdk.Deck(
+        map_style="mapbox://styles/mapbox/light-v10",  # Default style
+        initial_view_state=pdk.ViewState(
+            latitude=lat,
+            longitude=lon,
+            zoom=10,
+            pitch=0,
+        ),
+        layers=[
+            pdk.Layer(
+                "ScatterplotLayer",
+                data=[{"lat": lat, "lon": lon}],
+                get_position="[lon, lat]",
+                get_color="[255, 0, 0, 160]",
+                get_radius=1000,
+            ),
+            pdk.Layer(
+                "TextLayer",
+                data=[{"lat": lat, "lon": lon, "text": city_name}],
+                get_position="[lon, lat]",
+                get_text="text",
+                get_size=16,
+                get_color=[255, 255, 255],
+                get_angle=0,
+                get_alignment_baseline='"bottom"',
+            ),
+        ],
+    )
 
+    st.pydeck_chart(deck)
 # --- Main Logic ---
 if city:
     lat, lon, location_name = get_coordinates(city)
@@ -228,79 +259,45 @@ if city:
             st.subheader(f"Weather in {location_name}")
             st.metric("🌡️ Temperature", f"{current['temperature']} °C")
             st.write(f"💨 Wind Speed: {current['windspeed']} km/h")
-            st.write(f"🌈 weather Conditions: {condition}")
+            st.write(f"🌈 Weather Conditions: {condition}")
             st.write(f"🤗 Feels Like: {feels_like} °C")
             st.write(f"🌇 Sunset at: {sunset}")
-            
-def show_map(lat, lon, city_name):
-    st.subheader("🗺️ Location Map")
 
-    view_state = pdk.ViewState(
-        latitude=lat,
-        longitude=lon,
-        zoom=10,
-        pitch=0,
-    )
+            show_map(lat, lon, city)
 
-    layers = [
-        # 🔴 Red Marker
-        pdk.Layer(
-            "ScatterplotLayer",
-            data=[{"lat": lat, "lon": lon}],
-            get_position="[lon, lat]",
-            get_color="[255, 0, 0, 160]",
-            get_radius=1000,
-        ),
-        # 🏷️ City Name Label
-        pdk.Layer(
-            "TextLayer",
-            data=[{"lat": lat, "lon": lon, "text": city_name}],
-            get_position="[lon, lat]",
-            get_text="text",
-            get_size=16,
-            get_color=[255, 255, 255],
-            get_angle=0,
-            get_alignment_baseline='"bottom"',
-        ),
-    ]
+            # --- Historical & Forecast Overlay ---
+            st.subheader("📈 Historical & Forecast Data")
+            try:
+                hourly = data.get("hourly", {})
+                timestamps = hourly.get("time", [])
+                temps = hourly.get("temperature_2m", [])
+                feels = hourly.get("apparent_temperature", [])
 
-    deck = pdk.Deck(
-        map_style="mapbox://styles/mapbox/light-v10",  # Default style
-        initial_view_state=view_state,
-        layers=layers,
-    )
+                if timestamps and temps and feels:
+                    st.markdown("**Last 5 Hours:**")
+                    for i in range(5):
+                        st.write(f"🕒 {timestamps[i]} — 🌡️ {temps[i]}°C | 🤗 Feels like: {feels[i]}°C")
 
-    st.pydeck_chart(deck)
+                    st.markdown("**Next 5 Hours:**")
+                    for i in range(len(timestamps) - 5, len(timestamps)):
+                        st.write(f"🕒 {timestamps[i]} — 🌡️ {temps[i]}°C | 🤗 Feels like: {feels[i]}°C")
 
-show_map(lat, lon, city)
-
-# --- Historical & Forecast Overlay ---
-if "data" in locals() and data is not None:
-    st.subheader("📈 Historical & Forecast Data")
-    try:
-        hourly = data.get("hourly", {})
-        timestamps = hourly.get("time", [])
-        temps = hourly.get("temperature_2m", [])
-        feels = hourly.get("apparent_temperature", [])
-
-        if timestamps and temps and feels:
-            st.markdown("**Last 5 Hours:**")
-            for i in range(5):
-                st.write(f"🕒 {timestamps[i]} — 🌡️ {temps[i]}°C | 🤗 Feels like: {feels[i]}°C")
-
-            st.markdown("**Next 5 Hours:**")
-            for i in range(len(timestamps) - 5, len(timestamps)):
-                st.write(f"🕒 {timestamps[i]} — 🌡️ {temps[i]}°C | 🤗 Feels like: {feels[i]}°C")
-
-            st.markdown("**Temperature Trend (Hourly):**")
-            st.line_chart({
-                "Temperature (°C)": temps,
-                "Feels Like (°C)": feels
-            })
+                    st.markdown("**Temperature Trend (Hourly):**")
+                    st.line_chart({
+                        "Temperature (°C)": temps,
+                        "Feels Like (°C)": feels
+                    })
+                else:
+                    st.warning("Hourly temperature data is missing.")
+            except Exception:
+                pass  # Silently skip if something goes wrong
         else:
-            st.warning("Hourly temperature data is missing.")
-    except Exception:
-        pass  # Silently skip if something goes wrong
+            st.error("Weather data not available.")
+    else:
+        st.warning("Could not find location. Try a more specific name.")
+
+
+
         
 # ---- Footer ----
 st.markdown("<p style='text-align:center; color:white;'>© 2025 Weather app| Powered by Open-Meteo</p>", unsafe_allow_html=True)
