@@ -274,11 +274,12 @@ if city:
         ],
     ))
 
-show_map(lat, lon, city)
+show_map(lat, lon, city, selected_style)
         else:
             st.error("Weather data not available.")
     else:
         st.warning("Could not find location. Try a more specific name.")
+
 
 
 # --- Historical & Forecast Overlay ---
@@ -311,5 +312,6 @@ if "data" in locals() and data is not None:
         
 # ---- Footer ----
 st.markdown("<p style='text-align:center; color:white;'>© 2025 Weather app| Powered by Open-Meteo</p>", unsafe_allow_html=True)
+
 
 
