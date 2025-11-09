@@ -1,0 +1,5 @@
+streamlit
+requests
+pydeck
+streamlit-lottie
+urllib3
