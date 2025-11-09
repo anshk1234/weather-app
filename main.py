@@ -231,16 +231,17 @@ if city:
             st.write(f"🌈 weather Conditions: {condition}")
             st.write(f"🤗 Feels Like: {feels_like} °C")
             st.write(f"🌇 Sunset at: {sunset}")
-            # --- Map Style Selector ---
+
+            # Map style selector
             map_style_choice = st.selectbox("🗺️ Choose Map Style", ["Satellite", "Streets", "Light", "Dark"])
             style_dict = {
                 "Satellite": "mapbox://styles/mapbox/satellite-v9",
                 "Streets": "mapbox://styles/mapbox/streets-v11",
                 "Light": "mapbox://styles/mapbox/light-v10",
                 "Dark": "mapbox://styles/mapbox/dark-v10"
-           }
-        selected_style = style_dict[map_style_choice]
-        # --- Map Display Function ---
+            }
+            selected_style = style_dict[map_style_choice]
+             # --- Map Display Function ---
         def show_map(lat, lon, city_name):
             st.subheader("🗺️ Location Map")
             st.pydeck_chart(pdk.Deck(
@@ -273,18 +274,14 @@ if city:
             )
         ],
     ))
+            # Show map
+                show_map(lat, lon, city, selected_style)
+else: 
+    st.error("Weather data not available.")
+else:
+    st.warning("Could not find location. Try a more specific name.")
 
-if city:
-    lat, lon, location_name = get_coordinates(city)
-    if lat and lon:
-        data = get_weather(lat, lon)
-        if data:
-            # Show weather info
-            show_map(lat, lon, city)
-        else:
-            st.error("Weather data not available.")
-    else:
-        st.warning("Could not find location. Try a more specific name.")
+
 
 
 
@@ -318,6 +315,7 @@ if "data" in locals() and data is not None:
         
 # ---- Footer ----
 st.markdown("<p style='text-align:center; color:white;'>© 2025 Weather app| Powered by Open-Meteo</p>", unsafe_allow_html=True)
+
 
 
 
