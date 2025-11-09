@@ -231,61 +231,48 @@ if city:
             st.write(f"🌈 weather Conditions: {condition}")
             st.write(f"🤗 Feels Like: {feels_like} °C")
             st.write(f"🌇 Sunset at: {sunset}")
-            # --- Map Style Selector ---
-            map_style_choice = st.selectbox("🗺️ Choose Map Style", ["Satellite", "Streets", "Light", "Dark"])
-            style_dict = {
-                "Satellite": "mapbox://styles/mapbox/satellite-v9",
-                "Streets": "mapbox://styles/mapbox/streets-v11",
-                "Light": "mapbox://styles/mapbox/light-v10",
-                "Dark": "mapbox://styles/mapbox/dark-v10"
-           }
-        selected_style = style_dict[map_style_choice]
-        # --- Map Display Function ---
-        def show_map(lat, lon, city_name):
-            st.subheader("🗺️ Location Map")
-            st.pydeck_chart(pdk.Deck(
-                map_style=selected_style,
-                initial_view_state=pdk.ViewState(
-                    latitude=lat,
-                    longitude=lon,
-                    zoom=10,
-                    pitch=0,
-            ),
-            layers=[
-            # 🔴 Red Marker
-                pdk.Layer(
-                'ScatterplotLayer',
-                data=[{"lat": lat, "lon": lon}],
-                get_position='[lon, lat]',
-                get_color='[255, 0, 0, 160]',
-                get_radius=1000,
-            ),
-            # 🏷️ City Name Label
-            pdk.Layer(
-                'TextLayer',
-                data=[{"lat": lat, "lon": lon, "text": city_name}],
-                get_position='[lon, lat]',
-                get_text='text',
-                get_size=16,
-                get_color=[255, 255, 255],
-                get_angle=0,
-                get_alignment_baseline='"bottom"',
-            )
-        ],
-    ))
+            
+def show_map(lat, lon, city_name):
+    st.subheader("🗺️ Location Map")
 
-if city:
-    lat, lon, location_name = get_coordinates(city)
-    if lat and lon:
-        data = get_weather(lat, lon)
-        if data:
-            # Show weather info
-            show_map(lat, lon, city)
-        else:
-            st.error("Weather data not available.")
-    else:
-        st.warning("Could not find location. Try a more specific name.")
+    view_state = pdk.ViewState(
+        latitude=lat,
+        longitude=lon,
+        zoom=10,
+        pitch=0,
+    )
 
+    layers = [
+        # 🔴 Red Marker
+        pdk.Layer(
+            "ScatterplotLayer",
+            data=[{"lat": lat, "lon": lon}],
+            get_position="[lon, lat]",
+            get_color="[255, 0, 0, 160]",
+            get_radius=1000,
+        ),
+        # 🏷️ City Name Label
+        pdk.Layer(
+            "TextLayer",
+            data=[{"lat": lat, "lon": lon, "text": city_name}],
+            get_position="[lon, lat]",
+            get_text="text",
+            get_size=16,
+            get_color=[255, 255, 255],
+            get_angle=0,
+            get_alignment_baseline='"bottom"',
+        ),
+    ]
+
+    deck = pdk.Deck(
+        map_style="mapbox://styles/mapbox/light-v10",  # Default style
+        initial_view_state=view_state,
+        layers=layers,
+    )
+
+    st.pydeck_chart(deck)
+
+show_map(lat, lon, city)
 
 # --- Historical & Forecast Overlay ---
 if "data" in locals() and data is not None:
