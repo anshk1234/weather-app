@@ -211,6 +211,10 @@ weather_codes = {
     95: "Thunderstorm ⛈️"
 }
 
+
+
+
+# --- Main Logic ---
 # --- Main Logic ---
 if city:
     lat, lon, location_name = get_coordinates(city)
@@ -225,64 +229,61 @@ if city:
             st.subheader(f"Weather in {location_name}")
             st.metric("🌡️ Temperature", f"{current['temperature']} °C")
             st.write(f"💨 Wind Speed: {current['windspeed']} km/h")
-            st.write(f"🌈 weather Conditions: {condition}")
+            st.write(f"🌈 Weather Conditions: {condition}")
             st.write(f"🤗 Feels Like: {feels_like} °C")
             st.write(f"🌇 Sunset at: {sunset}")
 
-# --- Map Style Selector ---
-map_style_choice = st.selectbox("🗺️ Choose Map Style", ["Satellite", "Streets", "Light", "Dark"])
-style_dict = {
-    "Satellite": "mapbox://styles/mapbox/satellite-v9",
-    "Streets": "mapbox://styles/mapbox/streets-v11",
-    "Light": "mapbox://styles/mapbox/light-v10",
-    "Dark": "mapbox://styles/mapbox/dark-v10"
-}
-selected_style = style_dict[map_style_choice]
+            # --- Map Display Function ---
+            def show_map(lat, lon, city_name):
+                st.subheader("🗺️ Location Map")
+                view_state = pdk.ViewState(latitude=lat, longitude=lon, zoom=10, pitch=0)
 
-def show_map(lat, lon, city_name):
-    st.subheader("🗺️ Location Map")
+                layers = [
+                    # 🌍 Esri Satellite Tiles
+                    pdk.Layer(
+                        "TileLayer",
+                        data=None,
+                        tile_size=256,
+                        min_zoom=0,
+                        max_zoom=19,
+                        get_tile_url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                    ),
+                    # 🔴 Red Marker
+                    pdk.Layer(
+                        "ScatterplotLayer",
+                        data=[{"lat": lat, "lon": lon}],
+                        get_position="[lon, lat]",
+                        get_color="[255, 0, 0, 160]",
+                        get_radius=1000,
+                    ),
+                    # 🏷️ City Name Label
+                    pdk.Layer(
+                        "TextLayer",
+                        data=[{"lat": lat, "lon": lon, "text": city_name}],
+                        get_position="[lon, lat]",
+                        get_text="text",
+                        get_size=16,
+                        get_color=[255, 255, 255],
+                        get_angle=0,
+                        get_alignment_baseline='"bottom"',
+                    ),
+                ]
 
-    view_state = pdk.ViewState(latitude=lat, longitude=lon, zoom=10, pitch=0)
+                deck = pdk.Deck(
+                    initial_view_state=view_state,
+                    layers=layers,
+                    map_style=None  # Disable Mapbox base style
+                )
 
-    layers = [
-        # 🌍 Esri Satellite Tiles
-        pdk.Layer(
-            "TileLayer",
-            data=None,
-            tile_size=256,
-            min_zoom=0,
-            max_zoom=19,
-            get_tile_url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        ),
-        # 🔴 Marker
-        pdk.Layer(
-            "ScatterplotLayer",
-            data=[{"lat": lat, "lon": lon}],
-            get_position="[lon, lat]",
-            get_color="[255, 0, 0, 160]",
-            get_radius=1000,
-        ),
-        # 🏷️ City Label
-        pdk.Layer(
-            "TextLayer",
-            data=[{"lat": lat, "lon": lon, "text": city_name}],
-            get_position="[lon, lat]",
-            get_text="text",
-            get_size=16,
-            get_color=[255, 255, 255],
-            get_angle=0,
-            get_alignment_baseline='"bottom"',
-        ),
-    ]
+                st.pydeck_chart(deck)
 
-    deck = pdk.Deck(
-        initial_view_state=view_state,
-        layers=layers,
-        map_style=None  # Disable Mapbox base style
-    )
+            # Show map
+            show_map(lat, lon, location_name)
+        else:
+            st.error("Weather data not available.")
+    else:
+        st.warning("Could not find location. Try a more specific name.")
 
-    st.pydeck_chart(deck)
-show_map(lat, lon, city)
 
 # --- Historical & Forecast Overlay ---
 if "data" in locals() and data is not None:
