@@ -79,7 +79,7 @@ def set_local_background(image_file):
         pointer-events: none;
     }}
     </style>
-    <div id="inspo-quote">“Weather is the mood of the sky.” 🎧</div>
+    <div id="inspo-quote">“Weather is the mood of the sky.”🌤️ </div>
     """
     st.markdown(css, unsafe_allow_html=True)
 
@@ -317,3 +317,4 @@ if "data" in locals() and data is not None:
         
 # ---- Footer ----
 st.markdown("<p style='text-align:center; color:white;'>© 2025 Weather app| Powered by Open-Meteo</p>", unsafe_allow_html=True)
+
