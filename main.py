@@ -280,7 +280,7 @@ if city:
         data = get_weather(lat, lon)
         if data:
             # Show weather info
-            show_map(lat, lon, city, selected_style)
+            show_map(lat, lon, city)
         else:
             st.error("Weather data not available.")
     else:
@@ -318,6 +318,7 @@ if "data" in locals() and data is not None:
         
 # ---- Footer ----
 st.markdown("<p style='text-align:center; color:white;'>© 2025 Weather app| Powered by Open-Meteo</p>", unsafe_allow_html=True)
+
 
 
 
